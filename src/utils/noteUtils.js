@@ -80,7 +80,7 @@ export function createNoteMapper({
   root = "C4",
   xStep = 1,
   yStep = 12,
-  midiMin = 21,
+  midiMin = 25,
   midiMax = 108,
 } = {}) {
   const rootMidi = typeof root === "string" ? nameToMidi(root) : root;
@@ -133,10 +133,14 @@ export function createNoteMapper({
  *  WHOLE_TONE   x=2  (whole step),  y=3  (minor 3rd)
  *  THIRDS       x=3  (minor 3rd),   y=4  (major 3rd)
  */
-export const LAYOUTS = {
-  CHROMATIC: { xStep: 1, yStep: 12 },
-  GUITAR: { xStep: 5, yStep: 12 },
-  HARMONIC: { xStep: 7, yStep: 4 },
-  WHOLE_TONE: { xStep: 2, yStep: 3 },
-  THIRDS: { xStep: 3, yStep: 4 },
-};
+export const LAYOUTS = [
+  { name: "Chromatic", xStep: 1, yStep: 12 },
+  { name: "Guitar", xStep: 5, yStep: 12 },
+  { name: "Harmonic", xStep: 7, yStep: 4 },
+  { name: "Whole Tone", xStep: 2, yStep: 3 },
+  { name: "Thirds", xStep: 3, yStep: 4 },
+];
+
+export const LAYOUTS_MAP = Object.fromEntries(
+  LAYOUTS.map((l) => [l.name.toUpperCase().replace(" ", "_"), l]),
+);

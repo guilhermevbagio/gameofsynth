@@ -11,12 +11,16 @@
             :key="j"
             class=""
             :class="[
-              'w-10 h-10 transition duration-50 ease-in-out border  hover:bg-teal-200/80 cursor-pointer flex items-center justify-center text-xs',
+              'w-14 h-14 transition duration-50 ease-in-out border  hover:bg-teal-200/80 cursor-pointer flex items-center justify-center text-xs',
               ticking ? 'border-teal-100/20' : 'border-white/35',
-              cell ? 'bg-teal-200 glow-white-sm' : 'bg-black',
+              cell ? 'bg-teal-200 glow-white-sm' : 'bg-black/30',
             ]"
             @click="toggleCell(i, j)"
-          ></div>
+          >
+            <p v-if="!ticking" class="text-white">
+              {{ noteMatrix[j][i].name }}
+            </p>
+          </div>
         </div>
       </div>
     </main>
@@ -73,7 +77,7 @@
           <div
             v-for="i in 8"
             :key="i"
-            class="border-2 cursor-pointer border-gray-800 transition duration-150 ease-in-out w-12! h-12! p-0! rounded"
+            class="border-2 cursor-pointer hover:bg-gray-900 border-gray-800 transition duration-150 ease-in-out w-12! h-12! p-0! rounded"
             :class="[
               sequencer[i - 1]
                 ? currentStep === i - 1
@@ -87,6 +91,8 @@
       </div>
 
       <Synth ref="synthRef" />
+
+      <BaseSwitch label="Mapping" :options="LAYOUTS" v-model="layoutMapping" />
     </aside>
   </div>
 </template>
@@ -97,12 +103,19 @@ import BaseSlider from "./components/BaseSlider.vue";
 import IconButton from "./components/IconButton.vue";
 import { Pause, Play, Trash } from "@lucide/vue";
 import Synth from "./components/Synth.vue";
-import { createNoteMapper, LAYOUTS } from "./utils/noteUtils.js";
+import BaseSwitch from "./components/BaseSwitch.vue";
+import { createNoteMapper, LAYOUTS, LAYOUTS_MAP } from "./utils/noteUtils.js";
 
-const { getNote, buildMatrix } = createNoteMapper({
-  root: "A2",
-  ...LAYOUTS.WHOLE_TONE,
-});
+const layoutMapping = ref(LAYOUTS_MAP.WHOLE_TONE);
+
+const mapper = computed(() =>
+  createNoteMapper({
+    root: "A2",
+    ...layoutMapping.value,
+  }),
+);
+
+const getNote = (x, y) => mapper.value.getNote(x, y);
 
 const gridHeight = ref(6);
 const gridWidth = computed(() => gridHeight.value);
@@ -113,6 +126,10 @@ const synthRef = ref(null);
 
 const sequencer = ref([true, true, true, true, true, true, true, true]);
 const currentStep = ref(0);
+
+const noteMatrix = computed(() =>
+  mapper.value.buildMatrix(gridHeight.value, gridWidth.value),
+);
 
 const synthGrid = ref(
   Array.from({ length: gridHeight.value }, () =>
