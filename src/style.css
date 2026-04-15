@@ -2,7 +2,7 @@
 
 @layer base {
   .glass-container {
-    @apply bg-white/10 backdrop-blur-md border border-white/30 rounded-lg p-6;
+    @apply bg-gray-500/10 bg-clip-padding backdrop-filter  backdrop-blur backdrop-saturate-100 backdrop-contrast-100 border border-white/30 rounded-lg p-6;
   }
 
   .glow-white {
@@ -28,5 +28,9 @@
     box-shadow:
       0 0 40px rgba(255, 255, 255, 0.8),
       0 0 80px rgba(255, 255, 255, 0.5);
+  }
+
+  .blocked {
+    @apply opacity-50 transition duration-150 ease-in-out cursor-not-allowed pointer-events-none;
   }
 }
