@@ -1,5 +1,5 @@
 <template>
-  <div class="glass-container flex flex-col w-full">
+  <div class="flex flex-col w-full">
     <label class="text-white font-medium text-sm">{{ label }}</label>
 
     <div class="flex items-center gap-4">
@@ -12,7 +12,7 @@
         @input="$emit('update:modelValue', parseFloat($event.target.value))"
         class="slider flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-white/70"
       />
-      <div class="text-white font-semibold text-lg w-16 text-right">
+      <div class="text-white font-semibold w-16 text-right">
         {{ modelValue.toFixed(decimals) }}
       </div>
     </div>

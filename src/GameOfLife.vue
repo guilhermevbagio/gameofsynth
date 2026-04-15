@@ -46,6 +46,7 @@
       </div>
 
       <BaseSlider
+        class="glass-container"
         :class="ticking ? 'blocked' : ''"
         v-model="BPM"
         label="BPM"
@@ -56,6 +57,7 @@
       />
 
       <BaseSlider
+        class="glass-container"
         :class="ticking ? 'blocked' : ''"
         v-model="gridHeight"
         label="Grid Size"
@@ -83,6 +85,8 @@
           ></div>
         </span>
       </div>
+
+      <Synth ref="synthRef" />
     </aside>
   </div>
 </template>
@@ -92,11 +96,20 @@ import { computed, onMounted, ref, watch } from "vue";
 import BaseSlider from "./components/BaseSlider.vue";
 import IconButton from "./components/IconButton.vue";
 import { Pause, Play, Trash } from "@lucide/vue";
+import Synth from "./components/Synth.vue";
+import { createNoteMapper, LAYOUTS } from "./utils/noteUtils.js";
 
-const gridHeight = ref(8);
+const { getNote, buildMatrix } = createNoteMapper({
+  root: "A2",
+  ...LAYOUTS.WHOLE_TONE,
+});
+
+const gridHeight = ref(6);
 const gridWidth = computed(() => gridHeight.value);
 
 const BPM = ref(120);
+
+const synthRef = ref(null);
 
 const sequencer = ref([true, true, true, true, true, true, true, true]);
 const currentStep = ref(0);
@@ -127,18 +140,22 @@ function play() {
 
 function pause() {
   clearInterval(tickInterval);
+  synthRef.value?.stopAllNotes();
   ticking.value = false;
 }
 
 function toggleCell(i, j) {
   synthGrid.value[i][j] = !synthGrid.value[i][j];
-  //console.log(`Toggled cell at (${i}, ${j}) to ${synthGrid.value[i][j]}`);
+  playNote(i, j);
+  setTimeout(() => {
+    stopNote(i, j);
+  }, 200);
 }
 
 function tick() {
   console.log("Tick");
 
-  currentStep.value = (currentStep.value + 1) % gridWidth.value;
+  currentStep.value = (currentStep.value + 1) % 8;
 
   if (!sequencer.value[currentStep.value]) {
     return;
@@ -147,11 +164,14 @@ function tick() {
   for (let i = 0; i < gridHeight.value; i++) {
     for (let j = 0; j < gridWidth.value; j++) {
       const alive = synthGrid.value[i][j];
+
       const neighbours = checkNeighbours(i, j);
       if (alive && (neighbours < 2 || neighbours > 3)) {
         synthGrid.value[i][j] = false;
+        stopNote(i, j);
       } else if (!alive && neighbours === 3) {
         synthGrid.value[i][j] = true;
+        playNote(i, j);
       }
     }
   }
@@ -162,14 +182,26 @@ function checkNeighbours(i, j) {
   for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
       if (x === 0 && y === 0) continue;
-      const ni = i + x;
-      const nj = j + y;
-      if (ni >= 0 && ni < gridHeight.value && nj >= 0 && nj < gridWidth.value) {
-        if (synthGrid.value[ni][nj]) count++;
-      }
+      const ni =
+        (((i + x) % gridHeight.value) + gridHeight.value) % gridHeight.value;
+      const nj =
+        (((j + y) % gridWidth.value) + gridWidth.value) % gridWidth.value;
+      if (synthGrid.value[ni][nj]) count++;
     }
   }
   return count;
+}
+
+function playNote(x, y) {
+  getNote(x, y);
+
+  synthRef.value?.playNote(getNote(x, y).freq);
+}
+
+function stopNote(x, y) {
+  getNote(x, y);
+
+  synthRef.value?.stopNote(getNote(x, y).freq);
 }
 
 function clear() {
