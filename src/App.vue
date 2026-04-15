@@ -1,0 +1,180 @@
+<template>
+  <div class="w-full h-full flex flex-row justify-between items-center p-4">
+    <main class="flex justify-center w-full">
+      <div
+        class="grid gap-0"
+        :style="{ gridTemplateColumns: `repeat(${gridWidth}, minmax(0, 1fr))` }"
+      >
+        <div v-for="(row, i) in synthGrid" :key="i">
+          <div
+            v-for="(cell, j) in row"
+            :key="j"
+            class="w-10 h-10 transition duration-50 ease-in-out border border-gray-600 hover:bg-gray-500 cursor-pointer flex items-center justify-center text-xs"
+            :class="cell ? 'bg-teal-200 glow-white-sm' : ''"
+            @click="toggleCell(i, j)"
+          ></div>
+        </div>
+      </div>
+    </main>
+
+    <aside
+      class="w-[25%] absolute right-0 my-4 rounded border h-full flex flex-col gap-4 justify-start items-start p-4"
+    >
+      <div class="flex flex-row justify-between w-full glass-container">
+        <IconButton
+          :icon="Pause"
+          :enabled="ticking"
+          color="text-gray-200! hover:text-white! "
+          @click="pause"
+        />
+        <IconButton
+          :icon="Play"
+          :enabled="!ticking"
+          color="text-gray-200! hover:text-white!"
+          @click="play"
+        />
+
+        <IconButton
+          :icon="Trash"
+          color="text-red-300! hover:text-red-400! text-white"
+          @click="clear"
+        />
+      </div>
+
+      <BaseSlider
+        v-model="BPM"
+        label="BPM"
+        :min="40"
+        :max="240"
+        :step="0.1"
+        :decimals="2"
+      />
+
+      <BaseSlider
+        v-model="gridHeight"
+        label="Grid Size"
+        :min="4"
+        :max="16"
+        :step="1"
+        :decimals="0"
+      />
+
+      <div class="glass-container w-full flex flex-col gap-4">
+        <p class="text-white text-sm font-medium">Sequencer</p>
+        <span class="flex flex-row gap-1 w-full h-12">
+          <div
+            v-for="i in 8"
+            :key="i"
+            class="border-2 border-gray-600 transition duration-150 ease-in-out w-12! h-12! p-0! rounded"
+            :class="[
+              sequencer[i - 1]
+                ? currentStep === i - 1
+                  ? 'bg-white border-white glow-white-sm'
+                  : 'bg-gray-600'
+                : '',
+            ]"
+            @click="toggleSequence(i - 1)"
+          ></div>
+        </span>
+      </div>
+    </aside>
+  </div>
+</template>
+
+<script setup>
+import { computed, onMounted, ref, watch } from "vue";
+import BaseSlider from "./components/BaseSlider.vue";
+import IconButton from "./components/IconButton.vue";
+import { Pause, Play, Trash } from "@lucide/vue";
+
+const gridHeight = ref(8);
+const gridWidth = computed(() => gridHeight.value);
+
+const BPM = ref(120);
+
+const sequencer = ref([true, true, true, true, true, true, true, true]);
+const currentStep = ref(0);
+
+const synthGrid = ref(
+  Array.from({ length: gridHeight.value }, () =>
+    Array.from({ length: gridWidth.value }, () => false),
+  ),
+);
+
+watch(gridHeight, (newHeight) => {
+  synthGrid.value = Array.from({ length: newHeight }, () =>
+    Array.from({ length: newHeight }, () => false),
+  );
+
+  console.log(`Grid resized to ${newHeight}x${newHeight}`);
+});
+
+let tickInterval = null;
+const ticking = ref(false);
+
+onMounted(() => {});
+
+function play() {
+  tickInterval = setInterval(tick, 60000 / BPM.value / 2);
+  ticking.value = true;
+}
+
+function pause() {
+  clearInterval(tickInterval);
+  ticking.value = false;
+}
+
+function toggleCell(i, j) {
+  synthGrid.value[i][j] = !synthGrid.value[i][j];
+  //console.log(`Toggled cell at (${i}, ${j}) to ${synthGrid.value[i][j]}`);
+}
+
+function tick() {
+  console.log("Tick");
+
+  currentStep.value = (currentStep.value + 1) % gridWidth.value;
+
+  if (!sequencer.value[currentStep.value]) {
+    return;
+  }
+
+  for (let i = 0; i < gridHeight.value; i++) {
+    for (let j = 0; j < gridWidth.value; j++) {
+      const alive = synthGrid.value[i][j];
+      const neighbours = checkNeighbours(i, j);
+      if (alive && (neighbours < 2 || neighbours > 3)) {
+        synthGrid.value[i][j] = false;
+      } else if (!alive && neighbours === 3) {
+        synthGrid.value[i][j] = true;
+      }
+    }
+  }
+}
+
+function checkNeighbours(i, j) {
+  let count = 0;
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      if (x === 0 && y === 0) continue;
+      const ni = i + x;
+      const nj = j + y;
+      if (ni >= 0 && ni < gridHeight.value && nj >= 0 && nj < gridWidth.value) {
+        if (synthGrid.value[ni][nj]) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function clear() {
+  synthGrid.value = Array.from({ length: gridHeight.value }, () =>
+    Array.from({ length: gridWidth.value }, () => false),
+  );
+
+  pause();
+}
+
+function toggleSequence(index) {
+  sequencer.value[index] = !sequencer.value[index];
+}
+</script>
