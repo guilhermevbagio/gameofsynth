@@ -11,9 +11,9 @@
             :key="j"
             class=""
             :class="[
-              'w-14 h-14 transition duration-50 ease-in-out border  hover:bg-teal-200/80 cursor-pointer flex items-center justify-center text-xs',
+              'w-14 h-14 backdrop-blur-md transition duration-50 ease-in-out border  hover:bg-teal-200/80 cursor-pointer flex items-center justify-center text-xs',
               ticking ? 'border-teal-100/20' : 'border-white/35',
-              cell ? 'bg-teal-200 glow-white-sm' : 'bg-black/30',
+              cell ? 'bg-teal-200 glow-white-sm' : 'bg-black/10',
             ]"
             @click="toggleCell(i, j)"
           >

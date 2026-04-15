@@ -5,12 +5,18 @@
     </label>
 
     <div class="flex flex-row justify-between text-white">
-      <ChevronLeft class="cursor-pointer" @click="selectPrevious" />
+      <ChevronLeft
+        class="text-gray-200! hover:text-white! transition duration-150 cursor-pointer"
+        @click="selectPrevious"
+      />
       <p class="select-none">
         {{ model.name }}
       </p>
 
-      <ChevronRight class="cursor-pointer" @click="selectNext" />
+      <ChevronRight
+        class="text-gray-200! hover:text-white! transition duration-150 cursor-pointer"
+        @click="selectNext"
+      />
     </div>
   </div>
 </template>

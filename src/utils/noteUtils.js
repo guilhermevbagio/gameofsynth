@@ -80,6 +80,7 @@ export function createNoteMapper({
   root = "C4",
   xStep = 1,
   yStep = 12,
+  steps = null,
   midiMin = 25,
   midiMax = 108,
 } = {}) {
@@ -90,26 +91,25 @@ export function createNoteMapper({
     return midiMin + ((((midi - midiMin) % rangeSize) + rangeSize) % rangeSize);
   }
 
-  function getNote(x, y) {
-    const raw = rootMidi + x * xStep + y * yStep;
-    const midi = wrapMidi(raw);
-    return {
-      midi,
-      freq: midiToFreq(midi),
-      name: midiToName(midi),
-      x,
-      y,
-    };
+  const scaleOffsets = steps
+    ? steps.reduce((acc, s) => [...acc, acc.at(-1) + s], [0])
+    : null;
+  const scaleSize = steps ? steps.length : null;
+  const scaleOctave = scaleOffsets ? scaleOffsets.at(-1) : null; // e.g. 12
+
+  function degreeToSemitone(degree) {
+    if (!scaleOffsets) return degree * xStep;
+    const oct = Math.floor(degree / scaleSize);
+    const idx = ((degree % scaleSize) + scaleSize) % scaleSize;
+    return oct * scaleOctave + scaleOffsets[idx];
   }
 
-  /**
-   * Builds a full matrix of note objects.
-   * @param {number} cols  - Number of columns
-   * @param {number} rows  - Number of rows
-   * @param {number} [originX=0] - Grid x offset for the top-left cell
-   * @param {number} [originY=0] - Grid y offset for the top-left cell
-   * @returns {Array<Array<object>>} notes[row][col]
-   */
+  function getNote(x, y) {
+    const raw = rootMidi + degreeToSemitone(x) + y * yStep;
+    const midi = wrapMidi(raw);
+    return { midi, freq: midiToFreq(midi), name: midiToName(midi), x, y };
+  }
+
   function buildMatrix(cols, rows, originX = 0, originY = 0) {
     return Array.from({ length: rows }, (_, row) =>
       Array.from({ length: cols }, (_, col) =>
@@ -139,6 +139,10 @@ export const LAYOUTS = [
   { name: "Harmonic", xStep: 7, yStep: 4 },
   { name: "Whole Tone", xStep: 2, yStep: 3 },
   { name: "Thirds", xStep: 3, yStep: 4 },
+  { name: "Major", steps: [2, 2, 1, 2, 2, 2, 1], yStep: 12 },
+  { name: "Minor", steps: [2, 1, 2, 2, 1, 2, 2], yStep: 12 },
+  { name: "Pentatonic", steps: [2, 2, 3, 2, 3], yStep: 12 },
+  { name: "Blues", steps: [3, 2, 1, 1, 3, 2], yStep: 12 },
 ];
 
 export const LAYOUTS_MAP = Object.fromEntries(
