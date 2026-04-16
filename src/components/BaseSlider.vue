@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col w-full gap-2">
     <label class="text-white font-medium text-sm">{{ label }}</label>
 
     <div class="flex items-center gap-4">
@@ -20,8 +20,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
-
 defineProps({
   label: {
     type: String,

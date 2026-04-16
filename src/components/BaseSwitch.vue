@@ -1,5 +1,5 @@
 <template>
-  <div class="glass-container w-full flex flex-col gap-2">
+  <div class="w-full flex flex-col gap-4">
     <label class="text-white font-medium text-sm">
       {{ label }}
     </label>
@@ -9,7 +9,7 @@
         class="text-gray-200! hover:text-white! transition duration-150 cursor-pointer"
         @click="selectPrevious"
       />
-      <p class="select-none">
+      <p class="select-none text-sm">
         {{ model.name }}
       </p>
 
@@ -23,7 +23,7 @@
 
 <script setup>
 import { ChevronLeft, ChevronRight } from "@lucide/vue";
-import { defineProps, ref } from "vue";
+import { ref } from "vue";
 
 const model = defineModel();
 

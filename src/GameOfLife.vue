@@ -3,29 +3,57 @@
     <aside
       class="w-[25%] absolute left-0 top-0 rounded border h-fit flex flex-col gap-4 justify-start items-start p-4"
     >
-      <BaseSlider
-        class="glass-container"
+      <div
+        class="glass-container flex flex-col gap-4 w-full"
         :class="ticking ? 'blocked' : ''"
-        v-model="BPM"
-        label="BPM"
-        :min="40"
-        :max="240"
-        :step="0.1"
-        :decimals="2"
-      />
+      >
+        <BaseSlider
+          :class="ticking ? 'blocked' : ''"
+          v-model="BPM"
+          label="BPM"
+          :min="40"
+          :max="240"
+          :step="0.1"
+          :decimals="2"
+        />
 
-      <BaseSlider
-        class="glass-container"
+        <BaseSwitch
+          :class="ticking ? 'blocked' : ''"
+          label="Key"
+          :options="KEYS"
+          v-model="key"
+        />
+      </div>
+
+      <div
+        class="glass-container flex flex-col gap-4 w-full"
         :class="ticking ? 'blocked' : ''"
-        v-model="gridHeight"
-        label="Grid Size"
-        :min="4"
-        :max="16"
-        :step="1"
-        :decimals="0"
-      />
+      >
+        <BaseSlider
+          :class="ticking ? 'blocked' : ''"
+          v-model="gridHeight"
+          label="Grid Size"
+          :min="4"
+          :max="16"
+          :step="1"
+          :decimals="0"
+        />
 
-      <BaseSwitch label="Mapping" :options="LAYOUTS" v-model="layoutMapping" />
+        <BaseSwitch
+          :class="ticking ? 'blocked' : ''"
+          label="Mapping"
+          :options="LAYOUTS"
+          v-model="layoutMapping"
+        />
+      </div>
+      <div class="glass-container flex flex-col gap-4 w-full">
+        <p class="text-white text-sm font-medium">Visualizer</p>
+        <ul class="grid grid-cols-6 text-teal-200">
+          <li v-for="note in currentlyPlayingNotes" :key="note">
+            {{ note }}
+          </li>
+        </ul>
+      </div>
     </aside>
 
     <main class="flex justify-center w-full">
@@ -108,13 +136,19 @@ import IconButton from "./components/IconButton.vue";
 import { Pause, Play, Trash } from "@lucide/vue";
 import Synth from "./components/Synth.vue";
 import BaseSwitch from "./components/BaseSwitch.vue";
-import { createNoteMapper, LAYOUTS, LAYOUTS_MAP } from "./utils/noteUtils.js";
+import {
+  createNoteMapper,
+  KEYS,
+  LAYOUTS,
+  LAYOUTS_MAP,
+} from "./utils/noteUtils.js";
 
-const layoutMapping = ref(LAYOUTS_MAP.WHOLE_TONE);
+const layoutMapping = ref(LAYOUTS_MAP.PENTATONIC);
+const key = ref(KEYS[0]);
 
 const mapper = computed(() =>
   createNoteMapper({
-    root: "A2",
+    root: key.value.name,
     ...layoutMapping.value,
   }),
 );
@@ -130,6 +164,8 @@ const synthRef = ref(null);
 
 const sequencer = ref([true, true, true, true, true, true, true, true]);
 const currentStep = ref(0);
+
+const currentlyPlayingNotes = ref(new Set());
 
 const noteMatrix = computed(() =>
   mapper.value.buildMatrix(gridHeight.value, gridWidth.value),
@@ -176,6 +212,9 @@ function toggleCell(i, j) {
 function tick() {
   console.log("Tick");
 
+  currentlyPlayingNotes.value.clear();
+  synthRef.value?.stopAllNotes();
+
   currentStep.value = (currentStep.value + 1) % 8;
 
   if (!sequencer.value[currentStep.value]) {
@@ -189,10 +228,10 @@ function tick() {
       const neighbours = checkNeighbours(i, j);
       if (alive && (neighbours < 2 || neighbours > 3)) {
         synthGrid.value[i][j] = false;
-        stopNote(i, j);
       } else if (!alive && neighbours === 3) {
         synthGrid.value[i][j] = true;
         playNote(i, j);
+        currentlyPlayingNotes.value.add(noteMatrix.value[j][i].name);
       }
     }
   }

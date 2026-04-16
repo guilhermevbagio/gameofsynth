@@ -148,3 +148,18 @@ export const LAYOUTS = [
 export const LAYOUTS_MAP = Object.fromEntries(
   LAYOUTS.map((l) => [l.name.toUpperCase().replace(" ", "_"), l]),
 );
+
+export const KEYS = [
+  { name: "A2" },
+  { name: "A#2" },
+  { name: "B2" },
+  { name: "C3" },
+  { name: "C#3" },
+  { name: "D3" },
+  { name: "D#3" },
+  { name: "E3" },
+  { name: "F3" },
+  { name: "F#3" },
+  { name: "G3" },
+  { name: "G#3" },
+];
