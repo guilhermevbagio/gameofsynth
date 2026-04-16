@@ -137,7 +137,7 @@ const playNote = (frequency) => {
   // ADSR envelope
   gainNode.value.gain.setValueAtTime(0, ctx.currentTime);
   gainNode.value.gain.linearRampToValueAtTime(
-    volume.value,
+    volume.value - frequency * 0.000025,
     ctx.currentTime + attack.value,
   );
 
