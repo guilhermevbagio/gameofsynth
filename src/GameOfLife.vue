@@ -1,5 +1,33 @@
 <template>
   <div class="w-full h-full flex flex-row justify-between items-center p-4">
+    <aside
+      class="w-[25%] absolute left-0 top-0 rounded border h-fit flex flex-col gap-4 justify-start items-start p-4"
+    >
+      <BaseSlider
+        class="glass-container"
+        :class="ticking ? 'blocked' : ''"
+        v-model="BPM"
+        label="BPM"
+        :min="40"
+        :max="240"
+        :step="0.1"
+        :decimals="2"
+      />
+
+      <BaseSlider
+        class="glass-container"
+        :class="ticking ? 'blocked' : ''"
+        v-model="gridHeight"
+        label="Grid Size"
+        :min="4"
+        :max="16"
+        :step="1"
+        :decimals="0"
+      />
+
+      <BaseSwitch label="Mapping" :options="LAYOUTS" v-model="layoutMapping" />
+    </aside>
+
     <main class="flex justify-center w-full">
       <div
         class="grid gap-0 shadow-lg"
@@ -49,28 +77,6 @@
         />
       </div>
 
-      <BaseSlider
-        class="glass-container"
-        :class="ticking ? 'blocked' : ''"
-        v-model="BPM"
-        label="BPM"
-        :min="40"
-        :max="240"
-        :step="0.1"
-        :decimals="2"
-      />
-
-      <BaseSlider
-        class="glass-container"
-        :class="ticking ? 'blocked' : ''"
-        v-model="gridHeight"
-        label="Grid Size"
-        :min="4"
-        :max="16"
-        :step="1"
-        :decimals="0"
-      />
-
       <div class="glass-container w-full flex flex-col gap-4">
         <p class="text-white text-sm font-medium">Sequencer</p>
         <span class="flex flex-row gap-1 w-full h-12">
@@ -91,8 +97,6 @@
       </div>
 
       <Synth ref="synthRef" />
-
-      <BaseSwitch label="Mapping" :options="LAYOUTS" v-model="layoutMapping" />
     </aside>
   </div>
 </template>

@@ -9,7 +9,7 @@ const backgroundEnabled = ref(true);
 </script>
 
 <template>
-  <div class="absolute top-3 left-3 text-white">
+  <div class="absolute bottom-3 left-3 text-white">
     <IconButton
       class="*:w-10 *:h-10"
       :icon="Image"

@@ -45,12 +45,28 @@
         :max="1"
         :step="0.01"
       />
+
+      <BaseSlider
+        v-model.number="lpFreq"
+        label="Low Pass "
+        :min="20"
+        :max="20000"
+        :step="1"
+      />
+
+      <BaseSlider
+        v-model.number="hpFreq"
+        label="High Pass "
+        :min="20"
+        :max="20000"
+        :step="1"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, watch } from "vue";
 import BaseSlider from "./BaseSlider.vue";
 
 const audioContext = ref(null);
@@ -63,6 +79,34 @@ const attack = ref(0.05);
 const release = ref(0.3);
 const volume = ref(0.3);
 
+const lpFilter = ref(null);
+const hpFilter = ref(null);
+
+const lpFreq = ref(8000);
+const hpFreq = ref(80);
+
+watch(lpFreq, (val) => {
+  if (lpFilter.value) lpFilter.value.frequency.value = val;
+});
+watch(hpFreq, (val) => {
+  if (hpFilter.value) hpFilter.value.frequency.value = val;
+});
+
+const initFilters = (ctx) => {
+  lpFilter.value = ctx.createBiquadFilter();
+  lpFilter.value.type = "lowpass";
+  lpFilter.value.frequency.value = lpFreq.value;
+  lpFilter.value.Q.value = 1;
+
+  hpFilter.value = ctx.createBiquadFilter();
+  hpFilter.value.type = "highpass";
+  hpFilter.value.frequency.value = hpFreq.value;
+  hpFilter.value.Q.value = 1;
+
+  lpFilter.value.connect(hpFilter.value);
+  hpFilter.value.connect(ctx.destination);
+};
+
 const initAudioContext = () => {
   if (!audioContext.value) {
     audioContext.value = new (
@@ -74,6 +118,7 @@ const initAudioContext = () => {
 const playNote = (frequency) => {
   initAudioContext();
   const ctx = audioContext.value;
+  initFilters(ctx);
 
   // Stop previous note
   if (oscillator.value) {
@@ -84,7 +129,7 @@ const playNote = (frequency) => {
   gainNode.value = ctx.createGain();
 
   oscillator.value.connect(gainNode.value);
-  gainNode.value.connect(ctx.destination);
+  gainNode.value.connect(lpFilter.value);
 
   oscillator.value.type = waveform.value;
   oscillator.value.frequency.value = frequency;
