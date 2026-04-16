@@ -221,20 +221,23 @@ function tick() {
     return;
   }
 
+  const nextGrid = synthGrid.value.map((row) => [...row]);
+
   for (let i = 0; i < gridHeight.value; i++) {
     for (let j = 0; j < gridWidth.value; j++) {
       const alive = synthGrid.value[i][j];
-
       const neighbours = checkNeighbours(i, j);
       if (alive && (neighbours < 2 || neighbours > 3)) {
-        synthGrid.value[i][j] = false;
+        nextGrid[i][j] = false;
       } else if (!alive && neighbours === 3) {
-        synthGrid.value[i][j] = true;
+        nextGrid[i][j] = true;
         playNote(i, j);
         currentlyPlayingNotes.value.add(noteMatrix.value[j][i].name);
       }
     }
   }
+
+  synthGrid.value = nextGrid;
 }
 
 function checkNeighbours(i, j) {
